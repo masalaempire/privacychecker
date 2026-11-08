@@ -47,3 +47,9 @@ export async function api(path, payload) {
   }
   return data;
 }
+
+let connectionRequest;
+
+export function connectionInfo() {
+  return connectionRequest ??= api("connection");
+}

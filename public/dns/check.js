@@ -1,4 +1,4 @@
-import { api, element, list, show, status } from "../ui.js";
+import { api, connectionInfo, element, list, show, status } from "../ui.js";
 
 const pause = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds));
 
@@ -48,7 +48,7 @@ element("run-dns").addEventListener("click", async (event) => {
   }
 });
 
-api("connection").then(({ dnsConfigured }) => {
+connectionInfo().then(({ dnsConfigured }) => {
   if (dnsConfigured) {
     element("run-dns").disabled = false;
     status("dns", "Ready");

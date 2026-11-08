@@ -1,4 +1,4 @@
-import { api, element, rows, show } from "../ui.js";
+import { connectionInfo, element, rows, show } from "../ui.js";
 
 function renderHeaders(info) {
   rows("header-rows", [
@@ -7,7 +7,7 @@ function renderHeaders(info) {
   ]);
 }
 
-api("connection").then(renderHeaders).catch(() => renderHeaders({}));
+connectionInfo().then(renderHeaders).catch(() => renderHeaders({}));
 // A blocked or unavailable readings module should never stop the connection checks.
 import("../browser-readings.js").then(({ mountFingerprint }) => mountFingerprint()).catch(() => {
   element("attribute-search").disabled = true;

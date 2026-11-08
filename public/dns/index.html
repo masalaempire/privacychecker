@@ -9,35 +9,38 @@
   <link rel="icon" href="/mark.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/style.css">
   <script type="module" src="/dns/check.js"></script>
+  <script type="module" src="/site-match.js"></script>
 </head>
 <body>
-  <header class="topbar">
-    <div class="shell bar-inner">
-      <a class="brand" href="/"><img src="/mark.svg" alt="" width="23" height="23"> Privacy Checker</a>
-      <nav aria-label="Site navigation">
-        <a href="/#connection">IP address</a>
-        <a href="/#tests">Tests</a>
-      </nav>
-    </div>
-  </header>
-  <main class="shell">
-    <header class="test-intro">
-      <h1>DNS leak test</h1>
-      <p>See which DNS resolvers reach the test server when your browser makes a request.</p>
-    </header>
-    <section class="panel probe" aria-labelledby="dns-title">
-      <div class="panel-heading"><h2 id="dns-title">Observed resolvers</h2><span class="status" id="dns-status" role="status">Checking setup</span></div>
-      <div class="probe-body">
-        <button class="button" id="run-dns" type="button" disabled>Run DNS check</button>
-        <ul class="result-list" id="dns-results" aria-live="polite"></ul>
-        <p class="probe-message" id="dns-message" aria-live="polite"></p>
+  <div id="site-content">
+    <header class="topbar">
+      <div class="shell bar-inner">
+        <a class="brand" href="/"><img src="/mark.svg" alt="" width="23" height="23"> Privacy Checker</a>
+        <nav aria-label="Site navigation">
+          <a href="/#connection">IP address</a>
+          <a href="/#tests">Tests</a>
+        </nav>
       </div>
-    </section>
-    <noscript><p>Enable JavaScript to run the checks.</p></noscript>
-  </main>
-  <footer class="shell footer">
-    <p>Privacy Checker</p>
-    <a href="https://github.com/masalaempire/privacychecker">Source code</a>
-  </footer>
+    </header>
+    <main class="shell">
+      <header class="test-intro">
+        <h1>DNS leak test</h1>
+        <p>See which DNS resolvers reach the test server when your browser makes a request.</p>
+      </header>
+      <section class="panel probe" aria-labelledby="dns-title">
+        <div class="panel-heading"><h2 id="dns-title">Observed resolvers</h2><span class="status" id="dns-status" role="status">Checking setup</span></div>
+        <div class="probe-body">
+          <button class="button" id="run-dns" type="button" disabled>Run DNS check</button>
+          <ul class="result-list" id="dns-results" aria-live="polite"></ul>
+          <p class="probe-message" id="dns-message" aria-live="polite"></p>
+        </div>
+      </section>
+      <noscript><p>Enable JavaScript to run the checks.</p></noscript>
+    </main>
+    <footer class="shell footer">
+      <p>This site checks for active incognito demo matches on arrival.</p>
+      <a href="https://github.com/masalaempire/privacychecker">Source code</a>
+    </footer>
+  </div>
 </body>
 </html>

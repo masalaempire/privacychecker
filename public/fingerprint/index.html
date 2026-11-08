@@ -9,49 +9,52 @@
   <link rel="icon" href="/mark.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/style.css">
   <script type="module" src="/fingerprint/check.js"></script>
+  <script type="module" src="/site-match.js"></script>
 </head>
 <body>
-  <header class="topbar">
-    <div class="shell bar-inner">
-      <a class="brand" href="/"><img src="/mark.svg" alt="" width="23" height="23"> Privacy Checker</a>
-      <nav aria-label="Site navigation">
-        <a href="/#connection">IP address</a>
-        <a href="/#tests">Tests</a>
-      </nav>
-    </div>
-  </header>
-  <main class="shell">
-    <header class="test-intro">
-      <h1 id="browser">Browser fingerprint</h1>
-      <p>Inspect the browser and device signals available to this page. The table’s measurements are calculated in this tab.</p>
+  <div id="site-content">
+    <header class="topbar">
+      <div class="shell bar-inner">
+        <a class="brand" href="/"><img src="/mark.svg" alt="" width="23" height="23"> Privacy Checker</a>
+        <nav aria-label="Site navigation">
+          <a href="/#connection">IP address</a>
+          <a href="/#tests">Tests</a>
+        </nav>
+      </div>
     </header>
-    <section id="fingerprint" class="panel fingerprint" aria-labelledby="browser">
-      <div class="filters">
-        <label class="visually-hidden" for="attribute-search">Search fingerprint attributes</label>
-        <input id="attribute-search" type="search" placeholder="Search attributes, e.g. timezone or fonts" aria-controls="fingerprint-table">
-        <p class="muted" id="attribute-count" role="status"></p>
-      </div>
-      <table id="fingerprint-table" aria-labelledby="browser">
-        <thead><tr><th scope="col">Attribute</th><th scope="col">Value</th></tr></thead>
-      </table>
-      <p id="no-attributes" class="muted" hidden>No attributes match your search.</p>
-    </section>
-    <article class="panel device-location">
-      <div>
-        <h2>Device location</h2>
-        <p class="muted" id="geo-message" role="status">Optional. Your browser may ask for permission.</p>
-      </div>
-      <button class="button" type="button" id="run-geo">Check location</button>
-    </article>
-    <details class="panel detail request-details">
-      <summary>Request headers</summary>
-      <dl id="header-rows" class="rows"></dl>
-    </details>
-    <noscript><p>Enable JavaScript to run the checks.</p></noscript>
-  </main>
-  <footer class="shell footer">
-    <p>Privacy Checker</p>
-    <a href="https://github.com/masalaempire/privacychecker">Source code</a>
-  </footer>
+    <main class="shell">
+      <header class="test-intro">
+        <h1 id="browser">Browser fingerprint</h1>
+        <p>Inspect the browser and device signals available to this page. The table’s measurements are calculated in this tab.</p>
+      </header>
+      <section id="fingerprint" class="panel fingerprint" aria-labelledby="browser">
+        <div class="filters">
+          <label class="visually-hidden" for="attribute-search">Search fingerprint attributes</label>
+          <input id="attribute-search" type="search" placeholder="Search attributes, e.g. timezone or fonts" aria-controls="fingerprint-table">
+          <p class="muted" id="attribute-count" role="status"></p>
+        </div>
+        <table id="fingerprint-table" aria-labelledby="browser">
+          <thead><tr><th scope="col">Attribute</th><th scope="col">Value</th></tr></thead>
+        </table>
+        <p id="no-attributes" class="muted" hidden>No attributes match your search.</p>
+      </section>
+      <article class="panel device-location">
+        <div>
+          <h2>Device location</h2>
+          <p class="muted" id="geo-message" role="status">Optional. Your browser may ask for permission.</p>
+        </div>
+        <button class="button" type="button" id="run-geo">Check location</button>
+      </article>
+      <details class="panel detail request-details">
+        <summary>Request headers</summary>
+        <dl id="header-rows" class="rows"></dl>
+      </details>
+      <noscript><p>Enable JavaScript to run the checks.</p></noscript>
+    </main>
+    <footer class="shell footer">
+      <p>This site checks for active incognito demo matches on arrival.</p>
+      <a href="https://github.com/masalaempire/privacychecker">Source code</a>
+    </footer>
+  </div>
 </body>
 </html>

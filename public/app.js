@@ -1,4 +1,4 @@
-import { api, element, rows, show } from "./ui.js";
+import { connectionInfo, element, rows, show } from "./ui.js";
 
 function renderConnection(info) {
   show("public-ip", info.ip);
@@ -45,4 +45,4 @@ const legacyPage = {
 }[location.hash];
 
 if (legacyPage) location.replace(legacyPage);
-else api("connection").then(renderConnection).catch(() => renderConnection({}));
+else connectionInfo().then(renderConnection).catch(() => renderConnection({}));
