@@ -85,7 +85,7 @@ async function dnsResults(request, config) {
   try {
     const response = await fetch(config.url, {
       method: "POST",
-      redirect: "error",
+      redirect: "manual",
       headers: {
         "Authorization": "Bearer " + config.secret,
         "Content-Type": "application/json"

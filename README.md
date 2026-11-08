@@ -2,7 +2,7 @@
 
 A dashboard for seeing what a website can learn from a visit. It shows your public IP, approximate IP location and timezone, network and transport details, and a searchable table of browser and device attributes. The table includes display metrics, privacy preferences, permission states, codec support, visible media device counts, and Canvas, WebGL, audio, and font samples. The DNS and WebRTC probes run on demand. Device location and the local font list use browser permission controls.
 
-The frontend uses plain HTML, CSS, and JavaScript with no build step. Browser measurements are displayed locally. The homepage shows IP details and links to dedicated DNS, WebRTC, fingerprint, and incognito pages. Each page submits a hash of selected readings to check for a remembered name when the incognito demo is enabled. The application keeps no visit history, and the optional DNS probe holds resolver results in memory for at most about 90 seconds. Cloudflare or any proxy in front of the probe may have its own logging settings. The WebRTC test uses Cloudflare's STUN server.
+The frontend uses plain HTML, CSS, and JavaScript with no build step. Browser measurements are displayed locally. The homepage shows IP details and links to dedicated DNS, WebRTC, fingerprint, incognito, and VPN pages. Each page submits a hash of selected readings to check for a remembered name when the incognito demo is enabled. The application keeps no visit history, and the optional DNS probe holds resolver results in memory for at most about 90 seconds. Cloudflare or any proxy in front of the probe may have its own logging settings. The WebRTC test uses Cloudflare's STUN server.
 
 ## Private window test
 
@@ -36,42 +36,92 @@ For a Pages deployment, first deploy the Worker, then add a **Durable Object nam
 
 ### Live DNS resolver check
 
-The dashboard can run on Cloudflare by itself. To enable DNS results, run the companion probe on a host that can receive public **UDP and TCP on port 53**. The probe sees the recursive resolver or forwarder that actually reaches its authoritative zone. Each check uses three fresh hostnames and the probe answers them with NXDOMAIN after recording the query source. The probe hostnames therefore need no wildcard certificate or HTTP service.
+You need a domain you manage and a probe host with public access on **UDP and TCP port 53**. The Worker can stay on its existing address. The probe sees which resolver reaches the delegated DNS zone and returns the results to the Worker over HTTPS.
 
-The following example uses `check.example.com` for the dashboard and `dns-check.example.com` for the delegated measurement zone.
+#### 1. Run the probe
 
-| Name | Record | Target |
-| --- | --- | --- |
-| `dns-ns.example.com` | `A` | Public IPv4 address of the probe host. Use DNS-only mode. |
-| `dns-check.example.com` | `NS` | `dns-ns.example.com` |
-| `dns-results.example.com` | Tunnel or reverse proxy | Forward HTTPS requests to `http://127.0.0.1:8788` on the probe host. |
-
-On the probe host, from `dns-probe/`, install the dependency in a virtual environment.
+Clone the repository on the probe host. From the `dns-probe/` directory, install the dependency and generate a shared secret.
 
 ```sh
 python3 -m venv .venv
 .venv/bin/pip install -r requirements.txt
+openssl rand -hex 32
 ```
 
-Generate a shared secret with `openssl rand -hex 32` and set the following environment variables in the service manager on that host. Keep the secret outside the repository.
+Set these environment variables for the probe, substituting your domain. Keep the secret out of Git.
 
-| Probe environment variable | Example |
-| --- | --- |
-| `DNS_PROBE_ZONE` | `dns-check.example.com` |
-| `DNS_PROBE_NAMESERVERS` | `dns-ns.example.com` |
-| `DNS_PROBE_SECRET` | The generated 64-character lowercase hex secret |
-| `DNS_LISTEN_PORT` | `5353` if forwarding public UDP/TCP port 53 to an unprivileged port. Defaults to `53`. |
+```ini
+DNS_PROBE_ZONE=dns-check.example.com
+DNS_PROBE_NAMESERVERS=dns-ns.example.com
+DNS_PROBE_SECRET=PASTE_THE_GENERATED_SECRET_HERE
+```
 
-Start the service with `.venv/bin/python probe.py`. Run a single probe process so DNS observations and HTTPS result lookups share the same memory. The result server listens on loopback and requires the shared secret. A Cloudflare Tunnel can expose that loopback service over HTTPS.
+The probe defaults to port 53 for DNS and `127.0.0.1:8788` for its results API. If the host has a local DNS stub on port 53, set `DNS_LISTEN_ADDRESS` to the IPv4 address assigned to the host’s external network interface. If you forward public port 53 to a different local port, set `DNS_LISTEN_PORT` to that port.
 
-In the Workers or Pages project’s **Variables and Secrets**, add these values to the deployment environment.
+On Linux with systemd, save the environment variables to `/etc/privacychecker-dns.env` with root-only read access. Create `/etc/systemd/system/privacychecker-dns.service` with the following content. Replace `LINUX_USER` with your username and use the absolute path to your checkout.
 
-| Cloudflare setting | Example |
-| --- | --- |
-| `DNS_PROBE_ZONE` | `dns-check.example.com` |
-| `DNS_PROBE_URL` | `https://dns-results.example.com/result` |
-| `DNS_PROBE_SECRET` (secret) | The same secret set on the probe host |
+```ini
+[Unit]
+Description=Privacy Checker authoritative DNS probe
+After=network.target
 
-Redeploy if your Cloudflare project requires it for environment changes. Until these values are configured, the DNS card shows **Setup required**. An observed resolver is a measurement of this request path. Interpreting a DNS leak depends on which resolver you expect your network or VPN to use.
+[Service]
+User=LINUX_USER
+WorkingDirectory=/home/LINUX_USER/privacychecker/dns-probe
+EnvironmentFile=/etc/privacychecker-dns.env
+ExecStart=/home/LINUX_USER/privacychecker/dns-probe/.venv/bin/python /home/LINUX_USER/privacychecker/dns-probe/probe.py
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+```
+
+```sh
+sudo systemctl daemon-reload
+sudo systemctl enable --now privacychecker-dns
+sudo journalctl -u privacychecker-dns -n 30
+```
+
+Allow inbound UDP and TCP on port 53 in your host firewall and provider firewall. Run one probe process so DNS queries and HTTPS result lookups share the same in-memory data.
+
+#### 2. Delegate the test zone
+
+Add these records under the DNS settings for `example.com`.
+
+| Type | Name | Target |
+| --- | --- | --- |
+| A | `dns-ns` | The probe host’s public IPv4 address. Set this record to **DNS only**. |
+| NS | `dns-check` | `dns-ns.example.com` |
+
+The test uses fresh names under `dns-check.example.com` and stops them at DNS, so no wildcard certificate is needed. From another machine you can confirm the nameserver answers on both transports and the delegation resolves.
+
+```sh
+dig @dns-ns.example.com dns-check.example.com SOA +norecurse
+dig @dns-ns.example.com dns-check.example.com SOA +norecurse +tcp
+dig dns-check.example.com SOA
+```
+
+[Cloudflare subdomain delegation](https://developers.cloudflare.com/dns/manage-dns-records/how-to/subdomains-outside-cloudflare/)
+
+#### 3. Publish the HTTPS results endpoint
+
+Set up a Cloudflare Tunnel with `cloudflared` on the probe host. Add a **Published application** route for `dns-results.example.com` with the service URL `http://127.0.0.1:8788`. This route serves the results API. DNS queries use the public port 53 configured above. The API authenticates requests with the shared secret.
+
+[Set up Cloudflare Tunnel](https://developers.cloudflare.com/tunnel/get-started/)
+
+#### 4. Configure the Worker
+
+Under the deployed project’s **Settings → Variables and Secrets**, add these values to the production environment and deploy the changes.
+
+| Setting | Type | Example |
+| --- | --- | --- |
+| `DNS_PROBE_ZONE` | Text | `dns-check.example.com` |
+| `DNS_PROBE_URL` | Text | `https://dns-results.example.com/result` |
+| `DNS_PROBE_SECRET` | Secret | The same 64-character secret configured on the host |
+
+Open the site’s **DNS leak test** and click **Run DNS check**. **Ready** means the Worker sees the settings. **Detected** means the probe observed a resolver. Whether that resolver indicates a leak depends on which resolver you expect your VPN or network to use.
+
+[Cloudflare Worker variables and secrets](https://developers.cloudflare.com/workers/configuration/environment-variables/)
 
 [Workers static assets](https://developers.cloudflare.com/workers/static-assets/) · [Pages Functions](https://developers.cloudflare.com/pages/functions/) · [Cloudflare STUN](https://developers.cloudflare.com/realtime/turn/)

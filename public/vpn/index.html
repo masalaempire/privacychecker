@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Compare your IP location with your browser time zone and language region.">
+  <meta name="theme-color" content="#f0f2f5">
+  <title>VPN Usage Test | Privacy Checker</title>
+  <link rel="icon" href="/mark.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/style.css">
+  <script type="module" src="/vpn/check.js"></script>
+  <script type="module" src="/site-match.js"></script>
+</head>
+<body>
+  <div id="site-content">
+    <header class="topbar">
+      <div class="shell bar-inner">
+        <a class="brand" href="/"><img src="/mark.svg" alt="" width="23" height="23"> Privacy Checker</a>
+        <nav aria-label="Site navigation">
+          <a href="/#connection">IP address</a>
+          <a href="/#tests">Tests</a>
+        </nav>
+      </div>
+    </header>
+    <main class="shell">
+      <header class="test-intro">
+        <h1>VPN usage test</h1>
+        <p>See whether your public IP location lines up with your browser’s time zone and preferred language region.</p>
+      </header>
+      <section class="panel" aria-labelledby="vpn-verdict">
+        <div class="vpn-outcome" id="vpn-outcome" aria-live="polite">
+          <h2 id="vpn-verdict">Comparing location signals…</h2>
+          <p id="vpn-summary" class="muted"></p>
+          <ul id="vpn-reasons"></ul>
+        </div>
+        <dl id="vpn-details" class="rows"></dl>
+      </section>
+      <p class="vpn-note muted">A VPN can exit in the same region. Travel, device settings, and approximate IP location can also affect the result.</p>
+      <noscript><p>Enable JavaScript to run the checks.</p></noscript>
+    </main>
+    <footer class="shell footer">
+      <div>
+        <p>Made by <strong>SimonLM</strong></p>
+        <p>Privacy is a fundamental human right to us all.</p>
+      </div>
+      <a href="https://github.com/masalaempire/privacychecker">Source code</a>
+    </footer>
+  </div>
+</body>
+</html>
