@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="See which network, browser and device details a website can observe about your visit.">
-  <meta name="theme-color" content="#101215">
-  <title>Privacy Checker — What the web sees</title>
+  <meta name="description" content="Check your public IP, DNS resolvers and browser fingerprint.">
+  <meta name="theme-color" content="#f0f2f5">
+  <title>Privacy Checker</title>
   <link rel="icon" href="/mark.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/style.css">
   <script type="module" src="/app.js"></script>
@@ -13,44 +13,29 @@
 <body>
   <header class="topbar">
     <div class="shell bar-inner">
-      <a class="wordmark" href="/" aria-label="Privacy Checker home">
-        <img src="/mark.svg" alt="" width="30" height="30">
-        Privacy<span>Checker</span>
-      </a>
-      <nav aria-label="Dashboard">
+      <h1><a href="/"><img src="/mark.svg" alt="" width="23" height="23"> Privacy Checker</a></h1>
+      <nav aria-label="On this page">
         <a href="#connection">Connection</a>
-        <a href="#browser">Browser</a>
         <a href="#fingerprint">Fingerprint</a>
       </nav>
-      <span class="version">FIELD GUIDE / 01</span>
     </div>
   </header>
 
   <main class="shell">
-    <section class="intro" aria-labelledby="page-title">
-      <div class="intro-copy">
-        <p class="eyebrow"><span class="status-dot"></span> YOUR EXPOSURE REPORT</p>
-        <h1 id="page-title">What the web<br><em>sees about you.</em></h1>
-        <p class="lede">See what your connection shares, what your browser gives away, and which details it keeps private.</p>
-      </div>
-      <aside class="intro-note"><span>01 / THIS VISIT</span><p>Browser and device readings stay in this tab. Network probes run when you ask.</p></aside>
-    </section>
-
-    <section id="connection" aria-labelledby="connection-title">
-      <div class="section-title"><span>01</span><h2 id="connection-title">Connection</h2></div>
-      <article class="card connection-card">
-        <div class="ip-panel">
-          <p class="label">PUBLIC IP ADDRESS</p>
-          <div class="ip-line">
-            <p id="public-ip" class="ip-value" aria-live="polite">Reading…</p>
-            <button class="icon-button" id="copy-ip" aria-label="Copy public IP" title="Copy public IP" disabled>
-              <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg>
-            </button>
-          </div>
-          <p class="note" id="copy-status" role="status"></p>
-          <dl id="network-rows" class="rows"></dl>
+    <section id="connection" aria-label="Connection">
+      <article class="panel ip-panel">
+        <h2>Your public IP address</h2>
+        <div class="ip-line">
+          <p id="public-ip" aria-live="polite">Reading…</p>
+          <button class="button" id="copy-ip" type="button" disabled>Copy<span class="visually-hidden"> public IP address</span></button>
         </div>
-        <figure class="location">
+        <p id="ip-location" class="location" aria-live="polite">Reading location…</p>
+        <p class="muted" id="copy-status" role="status"></p>
+        <details class="detail">
+          <summary>IP address details</summary>
+          <div class="ip-details">
+            <dl id="network-rows" class="rows"></dl>
+            <figure>
           <svg class="world" viewBox="0 0 360 180" aria-hidden="true">
             <defs>
               <pattern id="graticule" width="30" height="30" patternUnits="userSpaceOnUse"><path d="M30 0H0V30"/></pattern>
@@ -71,99 +56,66 @@
               <circle r="11" class="marker-halo"/><circle r="4" class="marker-center"/>
             </g>
           </svg>
-          <figcaption><span class="label">IP-BASED LOCATION</span><strong id="ip-location">Reading…</strong><span class="note">Approximate. Reflects where your traffic exits.</span></figcaption>
-        </figure>
+              <figcaption>Approximate location based on your IP.</figcaption>
+            </figure>
+          </div>
+        </details>
       </article>
 
-      <div class="grid pair probe-grid">
-        <article class="card probe">
-          <div class="card-top"><span class="tile-icon" aria-hidden="true">↳</span><span class="pill" id="dns-status" role="status">Checking setup</span></div>
-          <h3>DNS resolvers</h3>
-          <p class="note">See which recursive resolvers contact this test’s DNS server.</p>
-          <div class="probe-activity" id="dns-activity" aria-hidden="true" hidden><i></i><i></i><i></i><i></i><i></i></div>
-          <ul class="result-list" id="dns-results" aria-live="polite"></ul>
-          <p class="probe-message" id="dns-message" aria-live="polite"></p>
-          <button class="button" id="run-dns" type="button" disabled>Run DNS check <span aria-hidden="true">↗</span></button>
+      <div class="probe-grid">
+        <article class="panel probe">
+          <div class="panel-heading"><h2>DNS resolvers</h2><span class="status" id="dns-status" role="status">Checking setup</span></div>
+          <div class="probe-body">
+            <p class="muted">Which resolvers reach this test’s DNS server.</p>
+            <ul class="result-list" id="dns-results" aria-live="polite"></ul>
+            <p class="probe-message" id="dns-message" aria-live="polite"></p>
+            <button class="button" id="run-dns" type="button" disabled>Run DNS check</button>
+          </div>
         </article>
-        <article class="card probe">
-          <div class="card-top"><span class="tile-icon lilac" aria-hidden="true">◈</span><span class="pill" id="rtc-status" role="status">Ready</span></div>
-          <h3>WebRTC addresses</h3>
-          <p class="note">Check which addresses a peer connection exposes. Uses Cloudflare’s STUN server.</p>
-          <ul class="result-list" id="rtc-results" aria-live="polite"></ul>
-          <p class="probe-message" id="rtc-message" aria-live="polite"></p>
-          <button class="button" id="run-rtc" type="button">Run WebRTC check <span aria-hidden="true">↗</span></button>
+        <article class="panel probe">
+          <div class="panel-heading"><h2>WebRTC addresses</h2><span class="status" id="rtc-status" role="status">Ready</span></div>
+          <div class="probe-body">
+            <p class="muted">Which addresses a peer connection exposes. Uses Cloudflare STUN.</p>
+            <ul class="result-list" id="rtc-results" aria-live="polite"></ul>
+            <p class="probe-message" id="rtc-message" aria-live="polite"></p>
+            <button class="button" id="run-rtc" type="button">Run WebRTC check</button>
+          </div>
         </article>
       </div>
-    </section>
 
-    <section id="browser" aria-labelledby="browser-title">
-      <div class="section-title"><span>02</span><h2 id="browser-title">Browser &amp; device</h2></div>
-      <div class="grid pair">
-        <article class="card">
-          <p class="label">LOCALE &amp; PREFERENCES</p>
-          <h3 id="browser-timezone" class="feature">Reading…</h3>
-          <dl id="browser-rows" class="rows"></dl>
-        </article>
-        <article class="card">
-          <p class="label">DISPLAY &amp; HARDWARE</p>
-          <h3 id="screen-size" class="feature">Reading…</h3>
-          <dl id="device-rows" class="rows"></dl>
-        </article>
-      </div>
-      <details class="card request-details">
+      <article class="panel device-location">
+        <div>
+          <h2>Device location</h2>
+          <p class="muted" id="geo-message" role="status">Optional. Your browser may ask for permission.</p>
+        </div>
+        <button class="button" type="button" id="run-geo">Check location</button>
+      </article>
+      <details class="panel detail request-details">
         <summary>Request headers</summary>
         <dl id="header-rows" class="rows"></dl>
       </details>
-      <article class="card device-location">
-        <div><h3>Device location</h3><p class="note" id="geo-message" role="status">Optional. Coordinates from your browser stay in this tab.</p></div>
-        <button class="button" type="button" id="run-geo">Check device location <span aria-hidden="true">↗</span></button>
-      </article>
     </section>
 
-    <section id="fingerprint" aria-labelledby="fingerprint-title">
-      <div class="section-title"><span>03</span><h2 id="fingerprint-title">Fingerprint signals</h2></div>
-      <p class="section-note">Small differences in rendering and fonts can help distinguish one browser from another. Sample hashes are calculated in this tab.</p>
-      <div class="grid signals">
-        <article class="card signal">
-          <p class="label">01 / DRAWING</p>
-          <h3>Canvas</h3>
-          <canvas id="canvas-sample" width="420" height="132" aria-label="Canvas rendering sample"></canvas>
-          <p class="reading" id="canvas-reading">Reading…</p>
-          <p class="note">A sample of how your browser draws text and shapes.</p>
-        </article>
-        <article class="card signal">
-          <p class="label">02 / GRAPHICS</p>
-          <h3>WebGL</h3>
-          <div class="graphic webgl-graphic" aria-hidden="true"><span></span><span></span><span></span></div>
-          <p class="reading" id="webgl-reading">Reading…</p>
-          <p class="note" id="webgl-detail">Graphics renderer details your browser exposes.</p>
-        </article>
-        <article class="card signal">
-          <p class="label">03 / SOUND</p>
-          <h3>Audio</h3>
-          <div class="graphic wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
-          <p class="reading" id="audio-reading">Reading…</p>
-          <p class="note">A short signal rendered silently in the browser.</p>
-        </article>
+    <section id="fingerprint" class="panel fingerprint" aria-labelledby="browser">
+      <header class="fingerprint-heading">
+        <h2 id="browser">Browser fingerprint</h2>
+        <p class="muted">These measurements stay in this tab. Some browsers limit which values a page can read.</p>
+      </header>
+      <div class="filters">
+        <label class="visually-hidden" for="attribute-search">Search fingerprint attributes</label>
+        <input id="attribute-search" type="search" placeholder="Search attributes, e.g. timezone or fonts" aria-controls="fingerprint-table">
+        <p class="muted" id="attribute-count" role="status"></p>
       </div>
-      <article class="card fonts">
-        <div class="font-specimen" aria-hidden="true"><span>Aa</span><span>01</span></div>
-        <div class="font-info">
-          <p class="label">04 / TYPOGRAPHY</p>
-          <h3>Fonts</h3>
-          <p class="note" id="font-summary">Checking a shortlist of common fonts…</p>
-          <ul class="font-tags" id="font-tags"></ul>
-          <button class="button" id="run-fonts" type="button">List accessible local fonts <span aria-hidden="true">↗</span></button>
-          <p class="probe-message" id="font-message" role="status"></p>
-          <details id="local-fonts" hidden>
-            <summary>Accessible local fonts</summary>
-            <ul class="result-list" id="local-font-results"></ul>
-          </details>
-        </div>
-      </article>
+      <table id="fingerprint-table" aria-labelledby="browser">
+        <thead><tr><th scope="col">Attribute</th><th scope="col">Value</th></tr></thead>
+      </table>
+      <p id="no-attributes" class="muted" hidden>No attributes match your search.</p>
     </section>
+    <noscript><p>Enable JavaScript to run the checks.</p></noscript>
   </main>
-  <footer class="shell footer"><span>PRIVACYCHECKER / 01</span><p>Measurements describe this visit and the signals available to this page.</p></footer>
-  <noscript><p class="shell">Enable JavaScript to run the privacy checks.</p></noscript>
+  <footer class="shell footer">
+    <p>Privacy Checker</p>
+    <a href="https://github.com/masalaempire/privacychecker">Source code</a>
+  </footer>
 </body>
 </html>

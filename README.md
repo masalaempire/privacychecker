@@ -1,6 +1,6 @@
 # Privacy Checker
 
-A single-page dashboard for seeing what a website can learn from a visit. It shows your public IP, approximate IP location and timezone, network and transport details, browser-reported locale and hardware, and Canvas, WebGL, audio, and font signals. The DNS and WebRTC probes run on demand. Device location and the local font list use browser permission controls.
+A single-page dashboard for seeing what a website can learn from a visit. It shows your public IP, approximate IP location and timezone, network and transport details, and a searchable table of browser and device attributes. The table includes display metrics, privacy preferences, permission states, codec support, visible media device counts, and Canvas, WebGL, audio, and font samples. The DNS and WebRTC probes run on demand. Device location and the local font list use browser permission controls.
 
 The frontend uses plain HTML, CSS, and JavaScript with no build step. The browser measurements are displayed locally. The application keeps no visit history, and the optional DNS probe holds resolver results in memory for at most about 90 seconds. Cloudflare or any proxy in front of the probe may have its own logging settings. The WebRTC test uses Cloudflare's STUN server.
 
