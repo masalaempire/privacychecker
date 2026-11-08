@@ -1,5 +1,3 @@
-import { mountFingerprint } from "./fingerprint.js";
-
 const unavailable = "Unavailable";
 const element = (id) => document.getElementById(id);
 const show = (id, value) => { element(id).textContent = value ?? unavailable; };
@@ -238,4 +236,10 @@ api("connection").then(renderConnection).catch(() => {
   status("dns", "Unavailable");
   show("dns-message", "Couldn’t reach the dashboard’s connection endpoint.");
 });
-mountFingerprint();
+// A blocked or unavailable readings module should never stop the connection checks.
+import("./browser-readings.js").then(({ mountFingerprint }) => mountFingerprint()).catch(() => {
+  element("attribute-search").disabled = true;
+  const message = element("no-attributes");
+  message.textContent = "Browser readings could not load.";
+  message.hidden = false;
+});
