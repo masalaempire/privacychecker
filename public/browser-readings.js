@@ -206,19 +206,19 @@ async function mediaDevices() {
   return annotated(counts.join(", "), "Counts reflect what this page can see under its permissions policy.");
 }
 
-async function digest(data) {
+async function digest(data, length = 8) {
   const bytes = new Uint8Array(await crypto.subtle.digest("SHA-256", data));
-  return Array.from(bytes.subarray(0, 8), (byte) => byte.toString(16).padStart(2, "0")).join("");
+  return Array.from(bytes.subarray(0, length), (byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
-async function canvasSample() {
+async function readCanvas() {
   const canvas = document.createElement("canvas");
   canvas.width = 420;
   canvas.height = 72;
   canvas.className = "sample";
   canvas.setAttribute("aria-label", "Canvas rendering sample");
   const ctx = canvas.getContext("2d");
-  if (!ctx) return unavailable;
+  if (!ctx) return null;
   ctx.fillStyle = "#f7faff";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   ctx.fillStyle = "#d6e7f7";
@@ -228,21 +228,33 @@ async function canvasSample() {
   ctx.fillText("Sphinx of black quartz, judge my vow.", 11, 32);
   ctx.font = "16px sans-serif";
   ctx.fillText("0123456789  Ω  😀", 12, 58);
-  const hash = await digest(ctx.getImageData(0, 0, canvas.width, canvas.height).data);
-  return annotated(canvas, "Sample hash " + hash);
+  const hash = await digest(ctx.getImageData(0, 0, canvas.width, canvas.height).data, 32);
+  return { canvas, hash };
 }
 
-function graphics() {
+async function canvasSample() {
+  const sample = await readCanvas();
+  return sample ? annotated(sample.canvas, "Sample hash " + sample.hash.slice(0, 16)) : unavailable;
+}
+
+function readGraphics() {
   const canvas = document.createElement("canvas");
   const gl = canvas.getContext("webgl2") || canvas.getContext("webgl");
-  if (!gl) return unavailable;
+  if (!gl) return null;
   const debug = gl.getExtension("WEBGL_debug_renderer_info");
   const vendor = gl.getParameter(debug ? debug.UNMASKED_VENDOR_WEBGL : gl.VENDOR);
   const renderer = gl.getParameter(debug ? debug.UNMASKED_RENDERER_WEBGL : gl.RENDERER);
   const maxTexture = gl.getParameter(gl.MAX_TEXTURE_SIZE);
   gl.getExtension("WEBGL_lose_context")?.loseContext();
+  return { renderer, vendor, maxTexture, masked: !debug };
+}
+
+function graphics() {
+  const info = readGraphics();
+  if (!info) return unavailable;
+  const { renderer, vendor, maxTexture, masked } = info;
   return annotated(renderer ?? unavailable,
-    [vendor, "Max texture " + maxTexture + " px", debug ? null : "Generic renderer information"].filter(Boolean).join(" · "));
+    [vendor, "Max texture " + maxTexture + " px", masked ? "Generic renderer information" : null].filter(Boolean).join(" · "));
 }
 
 function waveform(samples) {
@@ -300,17 +312,22 @@ const fontNames = [
   "Ubuntu", "Verdana", "Yu Gothic"
 ];
 
-function commonFonts() {
+function readFonts() {
   const ctx = document.createElement("canvas").getContext("2d");
-  if (!ctx) return unavailable;
+  if (!ctx) return null;
   const measure = (family) => {
     ctx.font = "72px " + family;
     return ctx.measureText("mWiIl1f0GQ&@8").width;
   };
   const fallbacks = ["serif", "sans-serif", "monospace"].map((family) => [family, measure(family)]);
-  const names = fontNames.filter((font) =>
+  return fontNames.filter((font) =>
     fallbacks.some(([family, baseline]) => measure('"' + font + '", ' + family) !== baseline)
   );
+}
+
+function commonFonts() {
+  const names = readFonts();
+  if (!names) return unavailable;
   const summary = names.length + " of " + fontNames.length + " tested families";
   return annotated(names.length ? expandable(summary, names, true) : summary, "Inferred from text widths.");
 }
@@ -349,6 +366,23 @@ function localFonts() {
     }
   });
   return content;
+}
+
+export async function privateWindowSignature() {
+  const results = await Promise.allSettled(
+    [readCanvas, readGraphics, readFonts].map((read) => Promise.resolve().then(read))
+  );
+  const [canvas, graphics, fonts] = results.map((result) => result.status === "fulfilled" ? result.value : null);
+  if (!canvas && !graphics?.renderer && !fonts?.length) return null;
+
+  // Sample device and rendering properties without network data or stored browser state.
+  const values = [
+    "v1", navigator.userAgent, navigator.platform, navigator.language,
+    Intl.DateTimeFormat().resolvedOptions().timeZone,
+    screen.width, screen.height, screen.colorDepth, navigator.hardwareConcurrency,
+    navigator.maxTouchPoints, canvas?.hash, graphics, fonts
+  ];
+  return digest(new TextEncoder().encode(JSON.stringify(values)), 32);
 }
 
 export function mountFingerprint() {

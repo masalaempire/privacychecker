@@ -66,7 +66,8 @@ function connectionInfo(request, env) {
     tls: edge.tlsVersion ?? null,
     userAgent: request.headers.get("User-Agent"),
     acceptLanguage: request.headers.get("Accept-Language"),
-    dnsConfigured: Boolean(dnsConfig(env))
+    dnsConfigured: Boolean(dnsConfig(env)),
+    privateTestConfigured: Boolean(env.PRIVATE_WINDOW_TESTS)
   };
 }
 
@@ -105,6 +106,34 @@ async function dnsResults(request, config) {
   }
 }
 
+async function privateWindowTest(request, env, action) {
+  const tests = env.PRIVATE_WINDOW_TESTS;
+  if (!tests) {
+    return json({ error: "Private window testing hasn’t been configured on this deployment." }, 503);
+  }
+  const { origin } = new URL(request.url);
+  if (request.headers.get("Origin") !== origin) {
+    return json({ error: "Start or check a test from this site." }, 403);
+  }
+
+  let signature;
+  try {
+    signature = (await request.json())?.signature;
+  } catch {
+    return json({ error: "Invalid browser signature." }, 400);
+  }
+  if (typeof signature !== "string" || !/^[a-f0-9]{64}$/.test(signature)) {
+    return json({ error: "Invalid browser signature." }, 400);
+  }
+
+  try {
+    const test = tests.getByName("private-window-test:v1:" + origin + ":" + signature);
+    return json({ test: await test.run(action) });
+  } catch {
+    return json({ error: "The private window test is temporarily unavailable." }, 503);
+  }
+}
+
 export async function handleApi(request, env) {
   const { pathname } = new URL(request.url);
   if (pathname === "/api/connection" && request.method === "GET") {
@@ -123,6 +152,11 @@ export async function handleApi(request, env) {
     }
 
     return dnsResults(request, config);
+  }
+
+  if ((pathname === "/api/private-window/start" || pathname === "/api/private-window/match") && request.method === "POST") {
+    const action = pathname.endsWith("/start") ? "start" : "match";
+    return privateWindowTest(request, env, action);
   }
 
   return json({ error: "Endpoint not found." }, 404);

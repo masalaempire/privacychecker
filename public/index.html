@@ -96,10 +96,23 @@
       </details>
     </section>
 
+    <section id="private-window" class="panel private-window" aria-labelledby="private-window-title">
+      <div class="panel-heading"><h2 id="private-window-title">Private window test</h2></div>
+      <div class="probe-body">
+        <p>Start in a regular window, then open this same page in a private window and look for a match. Compare the two codes.</p>
+        <p class="muted">Each button sends a hash of selected browser readings to this site. Test codes expire after five minutes. Browsers with identical readings can share a code.</p>
+        <div class="inline-action">
+          <button class="button" id="start-private-test" type="button" disabled>Start test</button>
+          <button class="button" id="match-private-test" type="button" disabled>Look for a match</button>
+        </div>
+        <p class="probe-message" role="status"><span id="private-test-message">Checking setup…</span> <code id="private-test-code" hidden></code></p>
+      </div>
+    </section>
+
     <section id="fingerprint" class="panel fingerprint" aria-labelledby="browser">
       <header class="fingerprint-heading">
         <h2 id="browser">Browser fingerprint</h2>
-        <p class="muted">These measurements stay in this tab. Some browsers limit which values a page can read.</p>
+        <p class="muted">These measurements are calculated in this tab. Some browsers limit which values a page can read.</p>
       </header>
       <div class="filters">
         <label class="visually-hidden" for="attribute-search">Search fingerprint attributes</label>

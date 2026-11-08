@@ -48,6 +48,45 @@ async function api(path, payload) {
   return data;
 }
 
+const privateTestButtons = [element("start-private-test"), element("match-private-test")].filter(Boolean);
+
+function setPrivateTestDisabled(disabled) {
+  for (const button of privateTestButtons) button.disabled = disabled;
+}
+
+async function runPrivateTest(action) {
+  const code = element("private-test-code");
+  code.hidden = true;
+  show("private-test-message", "Measuring browser signals…");
+  setPrivateTestDisabled(true);
+  try {
+    const { privateWindowSignature } = await import("./browser-readings.js");
+    const signature = await privateWindowSignature();
+    if (!signature) {
+      show("private-test-message", "This browser didn’t expose enough rendering signals for a comparison.");
+      return;
+    }
+    const { test } = await api("private-window/" + action, { signature });
+    if (!test) {
+      show("private-test-message", "No active test matched these readings. The readings may have changed, or the earlier test may have expired.");
+      return;
+    }
+
+    const expiry = new Date(test.expiresAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit", second: "2-digit" });
+    const label = action === "start" ? "Your test code" : "Matching test code";
+    show("private-test-message", label + " (expires at " + expiry + ")");
+    code.textContent = test.code;
+    code.hidden = false;
+  } catch (error) {
+    show("private-test-message", error.message || "The private window test couldn’t complete.");
+  } finally {
+    setPrivateTestDisabled(false);
+  }
+}
+
+element("start-private-test")?.addEventListener("click", () => runPrivateTest("start"));
+element("match-private-test")?.addEventListener("click", () => runPrivateTest("match"));
+
 function renderConnection(info) {
   show("public-ip", info.ip);
   element("copy-ip").disabled = !info.ip;
@@ -88,6 +127,17 @@ function renderConnection(info) {
     ["User-Agent", info.userAgent],
     ["Accept-Language", info.acceptLanguage]
   ]);
+  if (privateTestButtons.length) {
+    if (!info.privateTestConfigured) {
+      show("private-test-message", "Private window testing is unavailable on this deployment.");
+    } else if (!globalThis.crypto?.subtle) {
+      show("private-test-message", "The private window test requires HTTPS and Web Crypto.");
+    } else {
+      setPrivateTestDisabled(false);
+      show("private-test-message", "Ready.");
+    }
+  }
+
   if (info.dnsConfigured) {
     element("run-dns").disabled = false;
     status("dns", "Ready");
