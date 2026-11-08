@@ -16,6 +16,16 @@ export class PrivateWindowTest extends DurableObject {
     return test;
   }
 
+  async forget(name, expiresAt) {
+    const storage = this.ctx.storage;
+    const active = await storage.get("test");
+    if (active?.expiresAt > Date.now() && (active.name !== name || active.expiresAt !== expiresAt)) {
+      return false;
+    }
+    await storage.deleteAll();
+    return true;
+  }
+
   async alarm() {
     const storage = this.ctx.storage;
     const test = await storage.get("test");

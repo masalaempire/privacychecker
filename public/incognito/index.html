@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="See if your browser can be recognized in a private window.">
+  <meta name="theme-color" content="#f0f2f5">
+  <title>Incognito Tracking Demo | Privacy Checker</title>
+  <link rel="icon" href="/mark.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/style.css">
+  <script type="module" src="/incognito/check.js"></script>
+</head>
+<body>
+  <div id="private-test-normal">
+    <header class="topbar">
+      <div class="shell bar-inner">
+        <a class="brand" href="/"><img src="/mark.svg" alt="" width="23" height="23"> Privacy Checker</a>
+        <nav aria-label="Site navigation">
+          <a href="/#connection">IP address</a>
+          <a href="/#tests">Tests</a>
+        </nav>
+      </div>
+    </header>
+    <main class="shell">
+      <section id="private-window" class="panel private-window" aria-labelledby="private-window-title">
+        <h1 id="private-window-title">I can track you in incognito. Don’t believe me?</h1>
+        <p>Enter a name, then open this page in an incognito or private window. See if it remembers you.</p>
+        <form id="private-test-form">
+          <label for="private-test-input">Your name or a nickname</label>
+          <div class="inline-action">
+            <input id="private-test-input" type="text" maxlength="40" required autocomplete="off" placeholder="e.g. Sam">
+            <button class="button" id="start-private-test" type="submit" disabled>Remember me</button>
+          </div>
+        </form>
+        <button class="button" id="copy-private-test-link" type="button" hidden>Copy incognito test link</button>
+        <input id="private-test-link" type="url" aria-label="Incognito test link" readonly hidden>
+        <p class="muted">This page compares a hash of your browser readings on arrival. For five minutes after you start a test, a browser with matching readings can see the name you entered.</p>
+        <p class="probe-message" id="private-test-message" role="status">Checking for a saved name…</p>
+      </section>
+      <noscript><p>Enable JavaScript to run the checks.</p></noscript>
+    </main>
+    <footer class="shell footer">
+      <p>Privacy Checker</p>
+      <a href="https://github.com/masalaempire/privacychecker">Source code</a>
+    </footer>
+  </div>
+  <main id="private-test-reveal" class="shell private-reveal" hidden>
+    <h1 id="private-test-greeting" tabindex="-1">Hi <bdi id="private-test-name"></bdi>, surprised?</h1>
+    <button class="button" id="forget-private-test" type="button">Forget me</button>
+    <p id="private-forget-message" class="probe-message" role="status"></p>
+  </main>
+</body>
+</html>

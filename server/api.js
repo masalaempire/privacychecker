@@ -127,12 +127,20 @@ async function privateWindowTest(request, env, action) {
     return json({ error: "Invalid browser signature." }, 400);
   }
   const name = typeof payload?.name === "string" ? payload.name.trim() : "";
-  if (action === "start" && (!name || name.length > 40 || /[\p{Cc}\p{Bidi_Control}]/u.test(name))) {
+  if (action !== "match" && (!name || name.length > 40 || /[\p{Cc}\p{Bidi_Control}]/u.test(name))) {
     return json({ error: "Enter a name or nickname of up to 40 characters." }, 400);
   }
 
   try {
     const test = tests.getByName("private-window-test:v1:" + origin + ":" + signature);
+    if (action === "forget") {
+      const expiresAt = payload?.expiresAt;
+      if (!Number.isSafeInteger(expiresAt)) return json({ error: "Invalid test expiry." }, 400);
+      if (!await test.forget(name, expiresAt)) {
+        return json({ error: "This test changed. Reload the page to see the current result." }, 409);
+      }
+      return json({ forgotten: true });
+    }
     return json({ test: await test.run(action, name) });
   } catch {
     return json({ error: "The private window test is temporarily unavailable." }, 503);
@@ -159,9 +167,9 @@ export async function handleApi(request, env) {
     return dnsResults(request, config);
   }
 
-  if ((pathname === "/api/private-window/start" || pathname === "/api/private-window/match") && request.method === "POST") {
-    const action = pathname.endsWith("/start") ? "start" : "match";
-    return privateWindowTest(request, env, action);
+  const privateAction = pathname.match(/^\/api\/private-window\/(start|match|forget)$/)?.[1];
+  if (privateAction && request.method === "POST") {
+    return privateWindowTest(request, env, privateAction);
   }
 
   return json({ error: "Endpoint not found." }, 404);

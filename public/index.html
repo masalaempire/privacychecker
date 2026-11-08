@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Check your public IP, DNS resolvers and browser fingerprint.">
+  <meta name="description" content="Check your public IP and choose a browser privacy test.">
   <meta name="theme-color" content="#f0f2f5">
   <title>Privacy Checker</title>
   <link rel="icon" href="/mark.svg" type="image/svg+xml">
@@ -13,18 +13,17 @@
 <body>
   <header class="topbar">
     <div class="shell bar-inner">
-      <h1><a href="/"><img src="/mark.svg" alt="" width="23" height="23"> Privacy Checker</a></h1>
-      <nav aria-label="On this page">
-        <a href="#connection">Connection</a>
-        <a href="#fingerprint">Fingerprint</a>
+      <a class="brand" href="/"><img src="/mark.svg" alt="" width="23" height="23"> Privacy Checker</a>
+      <nav aria-label="Site navigation">
+        <a href="/#connection">IP address</a>
+        <a href="/#tests">Tests</a>
       </nav>
     </div>
   </header>
-
   <main class="shell">
     <section id="connection" aria-label="Connection">
       <article class="panel ip-panel">
-        <h2>Your public IP address</h2>
+        <h1>Your public IP address</h1>
         <div class="ip-line">
           <p id="public-ip" aria-live="polite">Reading…</p>
           <button class="button" id="copy-ip" type="button" disabled>Copy<span class="visually-hidden"> public IP address</span></button>
@@ -61,77 +60,32 @@
           </div>
         </details>
       </article>
-
-      <div class="probe-grid">
-        <article class="panel probe">
-          <div class="panel-heading"><h2>DNS resolvers</h2><span class="status" id="dns-status" role="status">Checking setup</span></div>
-          <div class="probe-body">
-            <p class="muted">Which resolvers reach this test’s DNS server.</p>
-            <ul class="result-list" id="dns-results" aria-live="polite"></ul>
-            <p class="probe-message" id="dns-message" aria-live="polite"></p>
-            <button class="button" id="run-dns" type="button" disabled>Run DNS check</button>
-          </div>
-        </article>
-        <article class="panel probe">
-          <div class="panel-heading"><h2>WebRTC addresses</h2><span class="status" id="rtc-status" role="status">Ready</span></div>
-          <div class="probe-body">
-            <p class="muted">Which addresses a peer connection exposes. Uses Cloudflare STUN.</p>
-            <ul class="result-list" id="rtc-results" aria-live="polite"></ul>
-            <p class="probe-message" id="rtc-message" aria-live="polite"></p>
-            <button class="button" id="run-rtc" type="button">Run WebRTC check</button>
-          </div>
-        </article>
-      </div>
-
-      <article class="panel device-location">
-        <div>
-          <h2>Device location</h2>
-          <p class="muted" id="geo-message" role="status">Optional. Your browser may ask for permission.</p>
-        </div>
-        <button class="button" type="button" id="run-geo">Check location</button>
-      </article>
-      <details class="panel detail request-details">
-        <summary>Request headers</summary>
-        <dl id="header-rows" class="rows"></dl>
-      </details>
     </section>
 
-    <section id="private-window" class="panel private-window" aria-labelledby="private-window-title">
-      <h2 id="private-window-title">I can track you in incognito. Don’t believe me?</h2>
-      <p>Enter your name here, then open the test link in an incognito or private window. See if it remembers you.</p>
-      <form id="private-test-form">
-        <label for="private-test-input">Your name or a nickname</label>
-        <div class="inline-action">
-          <input id="private-test-input" type="text" maxlength="40" required autocomplete="off" placeholder="e.g. Sam">
-          <button class="button" id="start-private-test" type="submit" disabled>Remember me</button>
-        </div>
-      </form>
-      <div class="inline-action">
-        <button class="button" id="match-private-test" type="button" disabled>Check this window</button>
-        <button class="button" id="copy-private-test-link" type="button" hidden>Copy incognito test link</button>
+    <section id="tests" class="test-directory" aria-labelledby="tests-title">
+      <h2 id="tests-title">Privacy tests</h2>
+      <div class="test-grid">
+        <article class="panel test-card">
+          <h3>DNS leak test</h3>
+          <p class="muted">See which DNS resolvers handle requests from your browser.</p>
+          <a class="button" href="/dns/">Open DNS test</a>
+        </article>
+        <article class="panel test-card">
+          <h3>WebRTC leak test</h3>
+          <p class="muted">See which network addresses a peer connection can expose.</p>
+          <a class="button" href="/webrtc/">Open WebRTC test</a>
+        </article>
+        <article class="panel test-card">
+          <h3>Browser fingerprint</h3>
+          <p class="muted">Inspect the settings, hardware, and rendering signals websites can read.</p>
+          <a class="button" href="/fingerprint/">View fingerprint</a>
+        </article>
+        <article class="panel test-card">
+          <h3>Incognito tracking demo</h3>
+          <p class="muted">Try to recognize the same browser in a private window.</p>
+          <a class="button" href="/incognito/">Open incognito test</a>
+        </article>
       </div>
-      <input id="private-test-link" type="url" aria-label="Incognito test link" readonly hidden>
-      <p class="muted">The demo compares a hash of browser readings. For five minutes, a browser with matching readings can see the name you entered.</p>
-      <div class="private-test-result" role="status">
-        <p id="private-test-reveal" hidden>Hi, <bdi id="private-test-name"></bdi>!</p>
-        <p class="probe-message" id="private-test-message">Checking setup…</p>
-      </div>
-    </section>
-
-    <section id="fingerprint" class="panel fingerprint" aria-labelledby="browser">
-      <header class="fingerprint-heading">
-        <h2 id="browser">Browser fingerprint</h2>
-        <p class="muted">These measurements are calculated in this tab. Some browsers limit which values a page can read.</p>
-      </header>
-      <div class="filters">
-        <label class="visually-hidden" for="attribute-search">Search fingerprint attributes</label>
-        <input id="attribute-search" type="search" placeholder="Search attributes, e.g. timezone or fonts" aria-controls="fingerprint-table">
-        <p class="muted" id="attribute-count" role="status"></p>
-      </div>
-      <table id="fingerprint-table" aria-labelledby="browser">
-        <thead><tr><th scope="col">Attribute</th><th scope="col">Value</th></tr></thead>
-      </table>
-      <p id="no-attributes" class="muted" hidden>No attributes match your search.</p>
     </section>
     <noscript><p>Enable JavaScript to run the checks.</p></noscript>
   </main>
