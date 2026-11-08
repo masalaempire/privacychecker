@@ -3,17 +3,15 @@ import { DurableObject } from "cloudflare:workers";
 const duration = 5 * 60 * 1000;
 
 export class PrivateWindowTest extends DurableObject {
-  async run(action) {
+  async run(action, name) {
     const storage = this.ctx.storage;
-    const active = await storage.get("test");
-    const now = Date.now();
-    if (active?.expiresAt > now) return active;
-    if (action !== "start") return null;
+    if (action === "match") {
+      const active = await storage.get("test");
+      return active?.expiresAt > Date.now() && typeof active.name === "string" ? active : null;
+    }
 
-    const code = Array.from(crypto.getRandomValues(new Uint8Array(6)),
-      (byte) => byte.toString(16).padStart(2, "0")).join("").toUpperCase();
-    const test = { code: code.slice(0, 6) + "-" + code.slice(6), expiresAt: now + duration };
-    // Schedule cleanup in the same storage batch as the receipt.
+    const test = { name, expiresAt: Date.now() + duration };
+    // Schedule cleanup in the same storage batch as the name.
     await Promise.all([storage.setAlarm(test.expiresAt), storage.put("test", test)]);
     return test;
   }

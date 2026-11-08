@@ -48,15 +48,23 @@ async function api(path, payload) {
   return data;
 }
 
+const privateTestForm = element("private-test-form");
 const privateTestButtons = [element("start-private-test"), element("match-private-test")].filter(Boolean);
+const openedTestLink = location.hash === "#private-window";
 
 function setPrivateTestDisabled(disabled) {
   for (const button of privateTestButtons) button.disabled = disabled;
 }
 
-async function runPrivateTest(action) {
-  const code = element("private-test-code");
-  code.hidden = true;
+async function runPrivateTest(action, name) {
+  const reveal = element("private-test-reveal");
+  const copy = element("copy-private-test-link");
+  reveal.hidden = true;
+  show("private-test-name", "");
+  if (action === "start") {
+    copy.hidden = true;
+    element("private-test-link").hidden = true;
+  }
   show("private-test-message", "Measuring browser signals…");
   setPrivateTestDisabled(true);
   try {
@@ -66,17 +74,20 @@ async function runPrivateTest(action) {
       show("private-test-message", "This browser didn’t expose enough rendering signals for a comparison.");
       return;
     }
-    const { test } = await api("private-window/" + action, { signature });
+    const { test } = await api("private-window/" + action, { signature, name });
     if (!test) {
-      show("private-test-message", "No active test matched these readings. The readings may have changed, or the earlier test may have expired.");
+      show("private-test-message", "No active test matched this window. The readings may have changed or the test may have expired.");
       return;
     }
 
-    const expiry = new Date(test.expiresAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit", second: "2-digit" });
-    const label = action === "start" ? "Your test code" : "Matching test code";
-    show("private-test-message", label + " (expires at " + expiry + ")");
-    code.textContent = test.code;
-    code.hidden = false;
+    if (action === "start") {
+      copy.hidden = false;
+      show("private-test-message", "Copy the test link and open it in a private window within five minutes.");
+    } else {
+      show("private-test-name", test.name);
+      reveal.hidden = false;
+      show("private-test-message", "This window’s browser readings matched an earlier test.");
+    }
   } catch (error) {
     show("private-test-message", error.message || "The private window test couldn’t complete.");
   } finally {
@@ -84,8 +95,34 @@ async function runPrivateTest(action) {
   }
 }
 
-element("start-private-test")?.addEventListener("click", () => runPrivateTest("start"));
-element("match-private-test")?.addEventListener("click", () => runPrivateTest("match"));
+if (privateTestForm) {
+  privateTestForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const name = element("private-test-input").value.trim();
+    if (!name) {
+      show("private-test-message", "Enter a name or nickname first.");
+      return;
+    }
+    runPrivateTest("start", name);
+  });
+  element("match-private-test").addEventListener("click", () => runPrivateTest("match"));
+  element("copy-private-test-link").addEventListener("click", async () => {
+    const url = new URL(location.href);
+    url.search = "";
+    url.hash = "private-window";
+    try {
+      await navigator.clipboard.writeText(url.href);
+      show("private-test-message", "Link copied. Paste it into a private window.");
+    } catch {
+      const input = element("private-test-link");
+      input.value = url.href;
+      input.hidden = false;
+      input.focus();
+      input.select();
+      show("private-test-message", "Copy the selected link and open it in a private window.");
+    }
+  });
+}
 
 function renderConnection(info) {
   show("public-ip", info.ip);
@@ -127,14 +164,15 @@ function renderConnection(info) {
     ["User-Agent", info.userAgent],
     ["Accept-Language", info.acceptLanguage]
   ]);
-  if (privateTestButtons.length) {
+  if (privateTestForm) {
     if (!info.privateTestConfigured) {
       show("private-test-message", "Private window testing is unavailable on this deployment.");
     } else if (!globalThis.crypto?.subtle) {
       show("private-test-message", "The private window test requires HTTPS and Web Crypto.");
     } else {
       setPrivateTestDisabled(false);
-      show("private-test-message", "Ready.");
+      show("private-test-message", "");
+      if (openedTestLink) runPrivateTest("match");
     }
   }
 

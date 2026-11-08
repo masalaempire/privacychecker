@@ -31,7 +31,7 @@
         </div>
         <p id="ip-location" class="location" aria-live="polite">Reading location…</p>
         <p class="muted" id="copy-status" role="status"></p>
-        <details class="detail">
+        <details class="detail" open>
           <summary>IP address details</summary>
           <div class="ip-details">
             <dl id="network-rows" class="rows"></dl>
@@ -97,15 +97,24 @@
     </section>
 
     <section id="private-window" class="panel private-window" aria-labelledby="private-window-title">
-      <div class="panel-heading"><h2 id="private-window-title">Private window test</h2></div>
-      <div class="probe-body">
-        <p>Start in a regular window, then open this same page in a private window and look for a match. Compare the two codes.</p>
-        <p class="muted">Each button sends a hash of selected browser readings to this site. Test codes expire after five minutes. Browsers with identical readings can share a code.</p>
+      <h2 id="private-window-title">I can track you in incognito. Don’t believe me?</h2>
+      <p>Enter your name here, then open the test link in an incognito or private window. See if it remembers you.</p>
+      <form id="private-test-form">
+        <label for="private-test-input">Your name or a nickname</label>
         <div class="inline-action">
-          <button class="button" id="start-private-test" type="button" disabled>Start test</button>
-          <button class="button" id="match-private-test" type="button" disabled>Look for a match</button>
+          <input id="private-test-input" type="text" maxlength="40" required autocomplete="off" placeholder="e.g. Sam">
+          <button class="button" id="start-private-test" type="submit" disabled>Remember me</button>
         </div>
-        <p class="probe-message" role="status"><span id="private-test-message">Checking setup…</span> <code id="private-test-code" hidden></code></p>
+      </form>
+      <div class="inline-action">
+        <button class="button" id="match-private-test" type="button" disabled>Check this window</button>
+        <button class="button" id="copy-private-test-link" type="button" hidden>Copy incognito test link</button>
+      </div>
+      <input id="private-test-link" type="url" aria-label="Incognito test link" readonly hidden>
+      <p class="muted">The demo compares a hash of browser readings. For five minutes, a browser with matching readings can see the name you entered.</p>
+      <div class="private-test-result" role="status">
+        <p id="private-test-reveal" hidden>Hi, <bdi id="private-test-name"></bdi>!</p>
+        <p class="probe-message" id="private-test-message">Checking setup…</p>
       </div>
     </section>
 

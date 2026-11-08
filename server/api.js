@@ -116,19 +116,24 @@ async function privateWindowTest(request, env, action) {
     return json({ error: "Start or check a test from this site." }, 403);
   }
 
-  let signature;
+  let payload;
   try {
-    signature = (await request.json())?.signature;
+    payload = await request.json();
   } catch {
-    return json({ error: "Invalid browser signature." }, 400);
+    return json({ error: "Invalid test request." }, 400);
   }
+  const signature = payload?.signature;
   if (typeof signature !== "string" || !/^[a-f0-9]{64}$/.test(signature)) {
     return json({ error: "Invalid browser signature." }, 400);
+  }
+  const name = typeof payload?.name === "string" ? payload.name.trim() : "";
+  if (action === "start" && (!name || name.length > 40 || /[\p{Cc}\p{Bidi_Control}]/u.test(name))) {
+    return json({ error: "Enter a name or nickname of up to 40 characters." }, 400);
   }
 
   try {
     const test = tests.getByName("private-window-test:v1:" + origin + ":" + signature);
-    return json({ test: await test.run(action) });
+    return json({ test: await test.run(action, name) });
   } catch {
     return json({ error: "The private window test is temporarily unavailable." }, 503);
   }

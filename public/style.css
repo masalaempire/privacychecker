@@ -86,7 +86,35 @@ figcaption { margin-top: 5px; }
 .request-details { margin-top: 12px; }
 
 .private-window, .fingerprint { margin-top: 24px; }
-#private-test-code { padding: 2px 5px; background: var(--stripe); color: var(--blue); font: 650 .9rem var(--mono); }
+.private-window {
+  padding: clamp(17px, 4vw, 32px);
+  display: grid;
+  gap: 11px;
+  border-top: 3px solid var(--blue);
+}
+.private-window h2 { font-size: clamp(1.45rem, 4vw, 2.25rem); line-height: 1.15; }
+#private-test-form { display: grid; gap: 5px; }
+#private-test-form label { font-size: .9rem; font-weight: 600; }
+#private-test-input, #private-test-link {
+  max-width: 100%;
+  min-width: 0;
+  padding: 6px 9px;
+  border: 1px solid #bccbda;
+  border-radius: 4px;
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  font-size: .9rem;
+}
+#start-private-test { background: var(--blue); border-color: var(--blue); color: #fff; }
+#start-private-test:not(:disabled):hover { background: #1b456d; }
+#private-test-reveal { color: var(--blue); font-size: clamp(1.6rem, 6vw, 2.65rem); font-weight: 700; overflow-wrap: anywhere; }
+.private-test-result:has(#private-test-reveal:not([hidden])) {
+  background: var(--stripe);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 10px 14px;
+}
 .fingerprint-heading { padding: 13px 14px 7px; }
 .fingerprint-heading h2 { font-size: 1.15rem; }
 .filters { display: flex; align-items: center; gap: 10px; padding: 5px 14px 12px; }

@@ -2,13 +2,13 @@
 
 A single-page dashboard for seeing what a website can learn from a visit. It shows your public IP, approximate IP location and timezone, network and transport details, and a searchable table of browser and device attributes. The table includes display metrics, privacy preferences, permission states, codec support, visible media device counts, and Canvas, WebGL, audio, and font samples. The DNS and WebRTC probes run on demand. Device location and the local font list use browser permission controls.
 
-The frontend uses plain HTML, CSS, and JavaScript with no build step. Browser measurements are displayed locally. The optional private window test submits a hash of selected readings only when you start or check a test. The application keeps no visit history, and the optional DNS probe holds resolver results in memory for at most about 90 seconds. Cloudflare or any proxy in front of the probe may have its own logging settings. The WebRTC test uses Cloudflare's STUN server.
+The frontend uses plain HTML, CSS, and JavaScript with no build step. Browser measurements are displayed locally. The optional private window test submits a hash of selected readings when you start a test, check manually, or open the dedicated test link. The application keeps no visit history, and the optional DNS probe holds resolver results in memory for at most about 90 seconds. Cloudflare or any proxy in front of the probe may have its own logging settings. The WebRTC test uses Cloudflare's STUN server.
 
 ## Private window test
 
-Click **Start test** in a regular window. Open the same site in a private or incognito window and click **Look for a match**. If the test code is the same, the selected browser signals matched. A match illustrates how visits might be linked. Different browsers can report identical signals, and a miss can mean the readings changed or the code expired.
+Enter a name or nickname and click **Remember me** in a regular window. Copy the test link and open it in an incognito or private window within five minutes. The link is the same for everyone on that site and triggers a lookup on arrival. You can also visit the dashboard normally and click **Check this window**.
 
-Inspired by [Nothing Private](https://github.com/gautamkrishnar/nothing-private). This implementation uses a random test code instead of asking for a name. The browser hashes selected device and rendering signals, and the site uses that digest to look up a code scoped to the current site. The application stores the code and expiry, with a five-minute lifetime and automatic cleanup. It never stores the raw readings, IP address, or browser storage contents as part of this test. The lookup works from the same URL with no pairing link or cookies.
+Inspired by [Nothing Private](https://github.com/gautamkrishnar/nothing-private). The browser hashes selected device and rendering signals. The site uses that digest to find the submitted name, scoped to the current site. It stores the name and expiry, with a five-minute lifetime and automatic cleanup. A later submission from a browser with the same signals replaces the earlier name. The demo stores no raw readings, IP address, or browser storage contents. The same name can appear on different browsers with identical readings.
 
 ## Deploy to Cloudflare
 
